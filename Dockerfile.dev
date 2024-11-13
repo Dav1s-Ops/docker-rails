@@ -1,0 +1,28 @@
+# syntax = docker/dockerfile:1
+
+# Use the same Ruby version
+ARG RUBY_VERSION=3.2.2
+FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim
+
+# Set working directory
+WORKDIR /rails
+
+# Install packages needed for building gems and node dependencies
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y build-essential git libpq-dev nodejs yarn && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
+# Copy Gemfile and Gemfile.lock
+COPY Gemfile Gemfile.lock ./
+
+# Install gems
+RUN bundle install
+
+# Copy the rest of the application code
+COPY . .
+
+# Expose port 3000
+EXPOSE 3000
+
+# Start the server
+CMD ["bin/rails", "server", "-b", "0.0.0.0"]
